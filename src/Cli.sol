@@ -6,7 +6,6 @@ import {Tokenizer} from "codec/Tokenizer.sol";
 import {Decimal} from "codec/Decimal.sol";
 import {Hexadecimal} from "codec/Hexadecimal.sol";
 import {Mixed} from "codec/Mixed.sol";
-import {Quote} from "codec/Quote.sol";
 import {JSON} from "codec/JSON.sol";
 import {TokenType, Classify} from "./Classify.sol";
 import {View} from "./View.sol";
@@ -21,7 +20,6 @@ contract Cli is IO {
   using Hexadecimal for bytes;
   using Hexadecimal for address;
   using Mixed for bytes;
-  using Quote for bytes;
 
   address token;
   TokenType tokenType;
@@ -42,7 +40,7 @@ contract Cli is IO {
       bytes[] memory values = new bytes[](2);
       values[0] = JSON.encode(string("token [address] - set the current token"));
       values[1] = JSON.encode(string("view {id} - displays information about the token id"));
-      return JSON.encode(values).quote("'");
+      return JSON.encode(values);
     } else if (words0 == keccak256(bytes("token"))) {
       bytes[] memory keys = new bytes[](3);
       bytes[] memory values = new bytes[](3);
@@ -60,11 +58,11 @@ contract Cli is IO {
       values[0] = JSON.encode(token);
       values[1] = JSON.encode(string(Classify.encodeTokenType(tokenType)));
       values[2] = token.viewToken(tokenType, owner);
-      return JSON.encode(keys, values).quote("'");
+      return JSON.encode(keys, values);
     } else if (words0 == keccak256(bytes("view"))) {
       if (tokenType == TokenType.ERC721 || tokenType == TokenType.ERC1155) {
         uint id = words[1].decodeMixedUint();
-        return token.viewToken(tokenType, id).quote("'");
+        return token.viewToken(tokenType, id);
       }
     } else {
       running = false;
