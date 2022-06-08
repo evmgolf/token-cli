@@ -39,10 +39,10 @@ contract Cli is IO {
 
     bytes32 words0 = keccak256(words[0]);
     if (words0 == keccak256(bytes("help"))) {
-      return bytes.concat(
-        "token [address] - set the current token",
-        "\nview {id} - displays information about the token id"
-      ).quote("'");
+      bytes[] memory values = new bytes[](2);
+      values[0] = JSON.encode(string("token [address] - set the current token"));
+      values[1] = JSON.encode(string("view {id} - displays information about the token id"));
+      return JSON.encode(values).quote("'");
     } else if (words0 == keccak256(bytes("token"))) {
       bytes[] memory keys = new bytes[](3);
       bytes[] memory values = new bytes[](3);
