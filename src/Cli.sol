@@ -37,7 +37,8 @@ contract Cli is IO {
     bytes32 words0 = keccak256(words[0]);
     if (words0 == keccak256(bytes("help"))) {
       return bytes.concat(
-        "'token [address] - set the current token\n'"
+        "'token [address] - set the current token",
+        "\nview {id} - displays information about the token id'"
       );
     } else if (words0 == keccak256(bytes("token"))) {
       if (words.length > 1) {
