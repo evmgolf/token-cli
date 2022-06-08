@@ -35,6 +35,22 @@ library Classify {
     }
   }
 
+  function encodeTokenType(TokenType tokenType) internal pure returns (bytes memory) {
+    if (tokenType == TokenType.NotContract) {
+      return "NotContract";
+    } else if (tokenType == TokenType.Unknown) {
+      return "Unknown";
+    } else if (tokenType == TokenType.ERC20) {
+      return "ERC20";
+    } else if (tokenType == TokenType.ERC721) {
+      return "ERC721";
+    } else if (tokenType == TokenType.ERC1155) {
+      return "ERC1155";
+    } else {
+      revert("Unknown type");
+    }
+  }
+
   function isERC721Metadata(address token) internal view returns (bool) {
     return ERC165(token).supportsInterface(ERC721MetadataInterfaceId);
   }

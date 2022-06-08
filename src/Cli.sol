@@ -6,6 +6,8 @@ import {Tokenizer} from "codec/Tokenizer.sol";
 import {Decimal} from "codec/Decimal.sol";
 import {Hexadecimal} from "codec/Hexadecimal.sol";
 import {Mixed} from "codec/Mixed.sol";
+import {Quote} from "codec/Quote.sol";
+import {JSON} from "codec/JSON.sol";
 import {TokenType, Classify} from "./Classify.sol";
 import {View} from "./View.sol";
 import {ReturnType, Call} from "./Call.sol";
@@ -19,6 +21,7 @@ contract Cli is IO {
   using Hexadecimal for bytes;
   using Hexadecimal for address;
   using Mixed for bytes;
+  using Quote for bytes;
 
   address token;
   TokenType tokenType;
@@ -37,10 +40,15 @@ contract Cli is IO {
     bytes32 words0 = keccak256(words[0]);
     if (words0 == keccak256(bytes("help"))) {
       return bytes.concat(
-        "'token [address] - set the current token",
-        "\nview {id} - displays information about the token id'"
-      );
+        "token [address] - set the current token",
+        "\nview {id} - displays information about the token id"
+      ).quote("'");
     } else if (words0 == keccak256(bytes("token"))) {
+      bytes[] memory keys = new bytes[](3);
+      bytes[] memory values = new bytes[](3);
+      keys[0] = "token";
+      keys[1] = "tokenType";
+      keys[2] = "view";
       if (words.length > 1) {
         token = words[1].decodeAddress();
         if (words.length > 2) {
@@ -49,11 +57,14 @@ contract Cli is IO {
           tokenType = token.classify();
         }
       }
-      return bytes.concat("'", token.viewToken(tokenType, owner), "'");
+      values[0] = JSON.encode(token);
+      values[1] = JSON.encode(string(Classify.encodeTokenType(tokenType)));
+      values[2] = token.viewToken(tokenType, owner);
+      return JSON.encode(keys, values).quote("'");
     } else if (words0 == keccak256(bytes("view"))) {
       if (tokenType == TokenType.ERC721 || tokenType == TokenType.ERC1155) {
         uint id = words[1].decodeMixedUint();
-        return bytes.concat("'", token.viewToken(tokenType, id), "'");
+        return token.viewToken(tokenType, id).quote("'");
       }
     } else {
       running = false;

@@ -3,6 +3,7 @@ pragma solidity 0.8.13;
 import {TokenType, Classify} from "./Classify.sol";
 import {Decimal} from "codec/Decimal.sol";
 import {Hexadecimal} from "codec/Hexadecimal.sol";
+import {JSON} from "codec/JSON.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 import {ERC721} from "solmate/tokens/ERC721.sol";
 import {ERC1155} from "solmate/tokens/ERC1155.sol";
@@ -11,80 +12,76 @@ library View {
   using Decimal for uint;
   using Hexadecimal for address;
 
-  function viewAddress(address token) internal view returns (bytes memory) {
-    return token.hexadecimal();
-  }
-
   function revertEmpty(address token) internal view {
     revert(string(bytes.concat("NO_CODE: ", token.hexadecimal())));
   }
 
-  function viewContract(address token) internal view returns (bytes memory) {
-    return bytes.concat(bytes(viewAddress(token)), " [Unknown]");
-  }
-
   function viewERC20(address token) internal view returns (bytes memory) {
-    return bytes.concat(
-      viewAddress(token),
-      " [ERC20]\n",
-      bytes(ERC20(token).name()),
-      " - $",
-      bytes(ERC20(token).symbol()),
-      "\n  ",
-      "totalSupply: ",
-      ERC20(token).totalSupply().decimal()
-    );
+    bytes[] memory keys = new bytes[](3);
+    bytes[] memory values = new bytes[](3);
+    keys[0] = "name";
+    keys[1] = "symbol";
+    keys[2] = "totalSupply";
+    values[0] = JSON.encode(ERC20(token).name());
+    values[1] = JSON.encode(ERC20(token).symbol());
+    values[2] = JSON.encode(ERC20(token).totalSupply());
+    return JSON.encode(keys, values);
   }
 
   function viewERC721(address token) internal view returns (bytes memory text) {
-    text = bytes.concat(bytes(viewAddress(token)), " [ERC721]");
+    bytes[] memory keys;
+    bytes[] memory values;
     if (Classify.isERC721Metadata(token)) {
-      text = bytes.concat(
-        text,
-        "\n",
-        bytes(ERC721(token).name()),
-        " - $",
-        bytes(ERC721(token).symbol())
-      );
+      keys = new bytes[](2);
+      values = new bytes[](2);
+      keys[0] = "name";
+      keys[1] = "symbol";
+      values[0] = JSON.encode(ERC721(token).name());
+      values[1] = JSON.encode(ERC721(token).symbol());
     }
+    return JSON.encode(keys, values);
   }
 
   function viewERC721(address token, address owner) internal view returns (bytes memory) {
-    return bytes.concat(
-        viewERC721(token),
-        "\nbalanceOf(",
-        owner.hexadecimal(),
-        "): ",
-        ERC721(token).balanceOf(owner).decimal()
+    bytes[] memory keys = new bytes[](1);
+    bytes[] memory values = new bytes[](1);
+    keys[0] = bytes.concat(
+      "balanceOf(",
+      owner.hexadecimal(),
+      ")"
     );
+    values[0] = JSON.encode(ERC721(token).balanceOf(owner));
+    return JSON.encode(keys, values);
   }
 
   function viewERC721(address token, uint id) internal view returns (bytes memory) {
-    return bytes.concat(
-      "$",
-      bytes(ERC721(token).symbol()),
-      ":",
+    bytes[] memory keys = new bytes[](2);
+    bytes[] memory values = new bytes[](2);
+    keys[0] = bytes.concat(
+      "ownerOf(",
       id.decimal(),
-      "\nownerOf: ",
-      ERC721(token).ownerOf(id).hexadecimal(),
-      "\ntokenURI: ",
-      bytes(ERC721(token).tokenURI(id))
+      ")"
     );
+    keys[1] = bytes.concat(
+      "tokenURI(",
+      id.decimal(),
+      ")"
+    );
+    values[0] = JSON.encode(ERC721(token).ownerOf(id));
+    values[1] = JSON.encode(ERC721(token).tokenURI(id));
+    return JSON.encode(keys, values);
   }
-
-  function viewERC1155(address token) internal view returns (bytes memory) {
-    return bytes.concat(bytes(viewAddress(token)), " [ERC1155]");
-  }
-
 
   function viewERC1155(address token, uint id) internal view returns (bytes memory) {
-    return bytes.concat(
-      viewERC1155(token),
-      ":",
+    bytes[] memory keys = new bytes[](1);
+    bytes[] memory values = new bytes[](1);
+    keys[0] = bytes.concat(
+      "uri(",
       id.decimal(),
-      "\nuri: ",
-      bytes(ERC1155(token).uri(id))
+      ")"
     );
+    values[0] = JSON.encode(ERC1155(token).uri(id));
+    return JSON.encode(keys, values);
   }
 
   function viewToken(address token, TokenType tokenType, uint id) internal view returns (bytes memory) {
@@ -99,7 +96,7 @@ library View {
 
   function viewToken(address token, TokenType tokenType, address owner) internal view returns (bytes memory) {
     if (tokenType == TokenType.NotContract) {
-      return viewAddress(token);
+      return JSON.encode();
     } else {
       if (token.code.length == 0) {
         revertEmpty(token);
@@ -109,9 +106,9 @@ library View {
         } else if (tokenType == TokenType.ERC721) {
           return viewERC721(token, owner);
         } else if (tokenType == TokenType.ERC1155) {
-          return viewERC1155(token);
+          return JSON.encode();
         } else {
-          return viewContract(token);
+          return JSON.encode();
         }
       }
     }
