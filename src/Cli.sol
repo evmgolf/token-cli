@@ -54,8 +54,6 @@ contract Cli is IO {
         uint id = words[1].decodeMixedUint();
         return bytes.concat("'", token.viewToken(tokenType, id), "'");
       }
-    } else if (words0 == keccak256(bytes("running"))) {
-      return token.hexadecimal();
     } else {
       running = false;
       return "";
