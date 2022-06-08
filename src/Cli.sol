@@ -68,7 +68,7 @@ contract Cli is IO {
       }
     } else {
       running = false;
-      return "";
+      return JSON.encode();
     }
   }
 }
